@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAKUBAKU // ROOT ACCESS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Matrix Rain Effect */
+        #matrix {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        /* Welcome Screen */
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .welcome-text {
+            text-align: center;
+            animation: glitch 3s infinite;
+        }
+        
+        .welcome-title {
+            font-size: 48px;
+            color: #0f0;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #0f0;
+        }
+        
+        .welcome-subtitle {
+            font-size: 24px;
+            color: #8f8;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeIn 2s forwards 1s;
+        }
+        
+        #search-bar-container {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 1s forwards 2s;
+            width: 60%;
+            margin-top: 30px;
+        }
+        
+        #search-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 30, 0, 0.8);
+            border: 2px solid #0f0;
+            color: #0f0;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            border-radius: 5px;
+        }
+        
+        #search-input::placeholder {
+            color: #0a0;
+        }
+        
+        /* Main Dashboard */
+        #dashboard {
+            display: none;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #0a0;
+        }
+        
+        .logo {
+            font-size: 28px;
+            color: #0f0;
+            letter-spacing: 3px;
+        }
+        
+        .logo span {
+            color: #f00;
+        }
+        
+        .current-time {
+            color: #8f8;
+            font-size: 14px;
+        }
+        
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            height: calc(100vh - 100px);
+        }
+        
+        /* Side Panels */
+        .side-panel {
+            background: rgba(0, 20, 0, 0.7);
+            border: 1px solid #0a0;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        
+        .panel-title {
+            color: #0f0;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #0a0;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* System Info */
+        .info-item {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .info-label {
+            color: #8f8;
+        }
+        
+        .info-value {
+            color: #0f0;
+            font-weight: bold;
+        }
+        
+        /* IP Rotation */
+        #ip-display {
+            font-size: 22px;
+            color: #f00;
+            text-align: center;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        .ip-change {
+            color: #8f8;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        /* Globe Container */
+        .globe-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            position: relative;
+        }
+        
+        .globe {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #001100, #000);
+            position: relative;
+            overflow: hidden;
+            animation: rotateGlobe 20s linear infinite;
+            box-shadow: 
+                0 0 50px rgba(0, 255, 0, 0.2),
+                inset 0 0 50px rgba(0, 255, 0, 0.1);
+        }
+        
+        .globe::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.1) 2px,
+                rgba(0, 255, 0, 0.1) 4px
+            );
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        
+        .globe-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+        
+        .globe-lines:nth-child(1) { transform: rotate(0deg); }
+        .globe-lines:nth-child(2) { transform: rotate(60deg); }
+        .globe-lines:nth-child(3) { transform: rotate(120deg); }
+        
+        /* Main Console */
+        .main-console {
+            background: rgba(0, 10, 0, 0.9);
+            border: 1px solid #0a0;
+            border-radius: 5px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .console-output {
+            height: 500px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #000;
+            border: 1px solid #0a0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .console-line {
+            margin-bottom: 5px;
+            animation: typewriter 0.1s steps(40, end);
+        }
+        
+        .user { color: #0f0; }
+        .system { color: #0af; }
+        .warning { color: #ff0; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .data { color: #8f8; }
+        
+        .console-input {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #0a0;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        /* Attack Progress */
+        .attack-progress {
+            margin-top: 20px;
+        }
+        
+        .progress-container {
+            margin: 10px 0;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #8f8;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #001100;
+            border: 1px solid #0a0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0a0, #0f0);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        /* Target Info */
+        .target-info {
+            background: rgba(30, 0, 0, 0.7);
+            border: 1px solid #a00;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        
+        .target-title {
+            color: #f00;
+            margin-bottom: 10px;
+        }
+        
+        /* Animations */
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes rotateGlobe {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Matrix Rain */
+        .matrix-char {
+            position: absolute;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            to { transform: translateY(100vh); }
+        }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+                font-size: 16px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+            p {
+                line-height: 1.6;
+            }
+        }
+
+
+    </style>
+</head>
+<body>
+    <!-- Matrix Rain Background -->
+    <div id="matrix"></div>
+    
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+        <div class="welcome-text">
+            <div class="welcome-title">GAKUBAKU<span> // ROOT</span></div>
+            <div class="welcome-subtitle">Welcome, root user.</div>
+            <div class="welcome-subtitle">Ready to exploit machines?</div>
+            
+            <div id="search-bar-container">
+                <input type="text" id="search-input" placeholder="Enter target IP address.">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard -->
+    <div id="dashboard">
+        <div class="dashboard-header">
+            <div class="logo">GAKUBAKU<span>://ROOT</span></div>
+            <div class="current-time" id="current-time">--:--:--</div>
+        </div>
+        
+        <div class="main-grid">
+            <!-- Left Panel - System Info -->
+            <div class="side-panel">
+                <div class="panel-title">SYSTEM INFORMATION</div>
+                
+                <div class="info-item">
+                    <span class="info-label">User:</span>
+                    <span class="info-value">root@kali</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Session ID:</span>
+                    <span class="info-value">GBK-7382-ALPHA</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">System Load:</span>
+                    <span class="info-value" id="system-load">12%</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Memory:</span>
+                    <span class="info-value" id="memory-usage">4.2/16 GB</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Network:</span>
+                    <span class="info-value">TOR + VPN Chain</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value" style="color: #0f0;">STEALTH</span>
+                </div>
+                
+                <!-- IP Rotation Display -->
+                <div class="panel-title" style="margin-top: 30px;">CURRENT IP</div>
+                <div id="ip-display">192.168.1.105</div>
+                <div class="ip-change">Rotating every 30 seconds</div>
+            </div>
+            
+            <!-- Main Console -->
+            <div class="main-console">
+                <div class="panel-title">ATTACK CONSOLE</div>
+                
+                <div class="console-output" id="console-output">
+                    <!-- Console output will appear here -->
+                </div>
+                
+                <input type="text" class="console-input" id="console-input" placeholder="Type commands here...">
+                
+                <!-- Attack Progress -->
+                <div class="attack-progress">
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>PORT SCAN</span>
+                            <span id="port-progress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="port-progress-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>SYSTEM ANALYSIS</span>
+                            <span id="sys-progress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="sys-progress-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>EXPLOIT DEPLOYMENT</span>
+                            <span id="exploit-progress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="exploit-progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Target Information -->
+                <div class="target-info">
+                    <div class="target-title">ACTIVE TARGET: <span id="target-ip-display">192.168.1.105</span></div>
+                    <div id="target-details">
+                        <div class="info-item">
+                            <span class="info-label">OS Detection:</span>
+                            <span class="info-value" id="target-os">Linux 5.15.0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Open Ports:</span>
+                            <span class="info-value" id="target-ports">21, 22, 80, 443, 3306</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Vulnerabilities:</span>
+                            <span class="info-value" id="target-vulns" style="color: #f00;">CVE-2021-41773, CVE-2022-22965</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Globe -->
+            <div class="side-panel">
+                <div class="panel-title">GLOBAL ACTIVITY</div>
+                
+                <div class="globe-container">
+                    <div class="globe">
+                        <div class="globe-lines"></div>
+                        <div class="globe-lines"></div>
+                        <div class="globe-lines"></div>
+                    </div>
+                </div>
+                
+                <div class="panel-title" style="margin-top: 30px;">LIVE ATTACKS</div>
+                
+                <div class="info-item">
+                    <span class="info-label">Active:</span>
+                    <span class="info-value">3</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Successful:</span>
+                    <span class="info-value">127</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Failed:</span>
+                    <span class="info-value">2</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Coverage:</span>
+                    <span class="info-value">42 Countries</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Last Target:</span>
+                    <span class="info-value" style="color: #f00;">10.13.37.92</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Rain Effect
+        function createMatrixRain() {
+            const matrix = document.getElementById('matrix');
+            const chars = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+            
+            for (let i = 0; i < 100; i++) {
+                const char = document.createElement('div');
+                char.className = 'matrix-char';
+                char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                char.style.left = Math.random() * 100 + 'vw';
+                char.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                char.style.animationDelay = Math.random() * 5 + 's';
+                char.style.opacity = Math.random() * 0.5 + 0.1;
+                matrix.appendChild(char);
+            }
+        }
+        
+        // Welcome Screen to Dashboard
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const targetIP = this.value.trim() || '192.168.1.105';
+                
+                // Hide welcome screen, show dashboard
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                
+                // Update target display
+                document.getElementById('target-ip-display').textContent = targetIP;
+                
+                // Start the attack sequence
+                startAttackSequence(targetIP);
+            }
+        });
+        
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {hour12: false});
+            document.getElementById('current-time').textContent = timeString;
+        }
+        
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Rotating IP Address
+        function rotateIP() {
+            const ips = [
+                '192.168.1.105',
+                '10.0.13.37',
+                '172.16.254.1',
+                '203.0.113.195',
+                '198.51.100.147',
+                '192.0.2.235',
+                '10.10.10.101',
+                '172.31.255.255'
+            ];
+            
+            let currentIndex = 0;
+            
+            setInterval(() => {
+                document.getElementById('ip-display').textContent = ips[currentIndex];
+                currentIndex = (currentIndex + 1) % ips.length;
+            }, 30000);
+        }
+        
+        // Console output
+        function addConsoleLine(type, text) {
+            const consoleOutput = document.getElementById('console-output');
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.textContent = text;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+        
+        // Start attack sequence
+        function startAttackSequence(targetIP) {
+            addConsoleLine('system', 'Initializing GAKUBAKU attack framework...');
+            addConsoleLine('system', 'Target acquired: ' + targetIP);
+            addConsoleLine('system', 'Launching injections...');
+            
+            // Simulate system load changes
+            setInterval(() => {
+                const load = Math.floor(Math.random() * 20) + 5;
+                document.getElementById('system-load').textContent = load + '%';
+                
+                const mem = (Math.random() * 2 + 3.5).toFixed(1);
+                document.getElementById('memory-usage').textContent = mem + '/16 GB';
+            }, 3000);
+            
+            // Start port scan
+            setTimeout(() => startPortScan(), 1000);
+        }
+        
+        // Port scan simulation
+        function startPortScan() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 2;
+                document.getElementById('port-progress-bar').style.width = progress + '%';
+                document.getElementById('port-progress').textContent = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    addConsoleLine('success', 'Port scan complete!');
+                    addConsoleLine('data', 'Open ports detected: 21(FTP), 22(SSH), 80(HTTP), 443(HTTPS), 3306(MySQL), 3389(RDP)');
+                    document.getElementById('target-ports').textContent = '21, 22, 80, 443, 3306, 3389';
+                    
+                    // Start system analysis
+                    setTimeout(() => startSystemAnalysis(), 500);
+                }
+            }, 50);
+            
+            addConsoleLine('system', 'Starting port scan on ' + document.getElementById('target-ip-display').textContent);
+            addConsoleLine('data', 'Scanning ports 1-65535...');
+        }
+        
+        // System analysis simulation
+        function startSystemAnalysis() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1.5;
+                document.getElementById('sys-progress-bar').style.width = progress + '%';
+                document.getElementById('sys-progress').textContent = Math.min(progress, 100) + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    addConsoleLine('success', 'System analysis complete!');
+                    addConsoleLine('data', 'OS Detected: Linux 5.15.0-58-generic x86_64');
+                    addConsoleLine('data', 'Services: Apache 2.4.49, OpenSSH 8.2p1, MySQL 8.0.32');
+                    document.getElementById('target-os').textContent = 'Linux 5.15.0-58';
+                    
+                    // Start exploit deployment
+                    setTimeout(() => startExploitDeployment(), 500);
+                }
+            }, 50);
+            
+            addConsoleLine('system', 'Analyzing target system...');
+            addConsoleLine('data', 'Running vulnerability assessment...');
+        }
+        
+        // Exploit deployment simulation
+        function startExploitDeployment() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                document.getElementById('exploit-progress-bar').style.width = progress + '%';
+                document.getElementById('exploit-progress').textContent = Math.min(progress, 100) + '%';
+                
+                if (progress >= 20) {
+                    addConsoleLine('warning', 'Detected CVE-2021-41773 (Apache Path Traversal)');
+                }
+                if (progress >= 40) {
+                    addConsoleLine('warning', 'Detected CVE-2022-22965 (Spring4Shell)');
+                }
+                if (progress >= 60) {
+                    addConsoleLine('system', 'Deploying payload for CVE-2021-41773...');
+                }
+                if (progress >= 80) {
+                    addConsoleLine('system', 'Attempting privilege escalation...');
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    addConsoleLine('success', 'EXPLOIT SUCCESSFUL!');
+                    addConsoleLine('success', 'Root shell accessed on target system');
+                    addConsoleLine('system', 'Downloading system files...');
+                    
+                    document.getElementById('target-vulns').textContent = 'CVE-2021-41773, CVE-2022-22965';
+                    
+                    // Show final success
+                    setTimeout(() => {
+                        addConsoleLine('success', '========================================');
+                        addConsoleLine('success', 'TARGET COMPROMISED SUCCESSFULLY');
+                        addConsoleLine('success', '========================================');
+                    }, 1000);
+                }
+            }, 100);
+            
+            addConsoleLine('system', 'Deploying exploits...');
+            addConsoleLine('data', 'Checking for known vulnerabilities...');
+        }
+        
+        // Command input handler
+        document.getElementById('console-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim();
+                if (command) {
+                    addConsoleLine('user', '> ' + command);
+                    
+                    // Process commands
+                    if (command === 'clear') {
+                        document.getElementById('console-output').innerHTML = '';
+                    } else if (command === 'status') {
+                        addConsoleLine('system', 'Attack Status: ACTIVE');
+                        addConsoleLine('system', 'Target: ' + document.getElementById('target-ip-display').textContent);
+                        addConsoleLine('system', 'Progress: All phases complete');
+                    } else if (command.startsWith('scan')) {
+                        addConsoleLine('system', 'Initiating new scan...');
+                        // Could restart scan here
+                    } else {
+                        addConsoleLine('error', 'Command not recognized');
+                    }
+                    
+                    this.value = '';
+                }
+            }
+        });
+        
+        // Initialize everything
+        window.onload = function() {
+            createMatrixRain();
+            rotateIP();
+            
+            // Add initial welcome messages
+            setTimeout(() => {
+                addConsoleLine('system', '██████╗  █████╗ ██╗  ██╗██╗   ██╗██████╗  █████╗ ██╗  ██╗██╗   ██╗');
+                addConsoleLine('system', '██╔════╝ ██╔══██╗██║ ██╔╝██║   ██║██╔══██╗██╔══██╗██║ ██╔╝██║   ██║');
+                addConsoleLine('system', '██║  ███╗███████║█████╔╝ ██║   ██║██████╔╝███████║█████╔╝ ██║   ██║');
+                addConsoleLine('system', '██║   ██║██╔══██║██╔═██╗ ██║   ██║██╔══██╗██╔══██║██╔═██╗ ██║   ██║');
+                addConsoleLine('system', '╚██████╔╝██║  ██║██║  ██╗╚██████╔╝██████╔╝██║  ██║██║  ██╗╚██████╔╝');
+                addConsoleLine('system', ' ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ');
+                addConsoleLine('system', '');
+                addConsoleLine('system', 'GAKUBAKU v3.0 // Red Team Framework');
+                addConsoleLine('system', 'Initialized with root privileges');
+            }, 100);
+        };
+        
+        // Auto-focus search input
+        setTimeout(() => {
+            document.getElementById('search-input').focus();
+        }, 3000);
+    </script>
+</body>
+</html>

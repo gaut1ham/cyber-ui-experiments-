@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEURALINKER v3.14</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2a 100%);
+            color: #7dffb3;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Neural Network Background */
+        .neural-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        
+        .neuron {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #7dffb3;
+            border-radius: 50%;
+            filter: blur(1px);
+            animation: neuronPulse 3s infinite;
+        }
+        
+        .synapse {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #7dffb3, transparent);
+            transform-origin: 0 0;
+        }
+        
+        /* Login Interface */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .login-title {
+            font-size: 48px;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+            color: #7dffb3;
+            text-shadow: 0 0 20px rgba(125, 255, 179, 0.5);
+            animation: glow 2s infinite alternate;
+        }
+        
+        .login-subtitle {
+            font-size: 18px;
+            color: #8a8aff;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .bio-input {
+            background: rgba(20, 20, 40, 0.8);
+            border: 2px solid #7dffb3;
+            border-radius: 10px;
+            padding: 25px;
+            width: 400px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .bio-metric {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(30, 30, 60, 0.6);
+            border-radius: 5px;
+        }
+        
+        .bio-label {
+            color: #8a8aff;
+            font-size: 14px;
+        }
+        
+        .bio-value {
+            color: #7dffb3;
+            font-weight: bold;
+        }
+        
+        .neural-link-btn {
+            background: linear-gradient(45deg, #00cc88, #0088ff);
+            border: none;
+            padding: 20px 40px;
+            color: white;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 2px;
+            margin-top: 20px;
+        }
+        
+        .neural-link-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(125, 255, 179, 0.5);
+        }
+        
+        /* Main Interface */
+        .main-interface {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(125, 255, 179, 0.3);
+            margin-bottom: 30px;
+        }
+        
+        .system-name {
+            font-size: 24px;
+            color: #7dffb3;
+            letter-spacing: 2px;
+        }
+        
+        .status-indicators {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .status-value {
+            font-size: 20px;
+            color: #7dffb3;
+            font-weight: bold;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #8a8aff;
+        }
+        
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            flex: 1;
+        }
+        
+        /* Left Panel - Neural Activity */
+        .neural-panel {
+            background: rgba(20, 20, 40, 0.6);
+            border: 2px solid rgba(125, 255, 179, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .brain-visualization {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .brain-hemisphere {
+            position: absolute;
+            width: 120px;
+            height: 180px;
+            border: 2px solid rgba(125, 255, 179, 0.5);
+            border-radius: 60px 60px 60px 60px;
+        }
+        
+        .left-hemisphere {
+            left: 20px;
+            background: linear-gradient(45deg, transparent, rgba(125, 255, 179, 0.1));
+        }
+        
+        .right-hemisphere {
+            right: 20px;
+            background: linear-gradient(135deg, transparent, rgba(138, 138, 255, 0.1));
+        }
+        
+        .neural-activity {
+            height: 120px;
+            background: rgba(10, 10, 26, 0.8);
+            border: 1px solid rgba(125, 255, 179, 0.2);
+            border-radius: 10px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .activity-wave {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(125, 255, 179, 0.1) 2px,
+                rgba(125, 255, 179, 0.1) 4px
+            );
+            animation: waveMove 10s linear infinite;
+        }
+        
+        /* Center Panel - Thought Interface */
+        .thought-panel {
+            background: rgba(20, 20, 40, 0.6);
+            border: 2px solid rgba(125, 255, 179, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .thought-stream {
+            flex: 1;
+            background: rgba(10, 10, 26, 0.8);
+            border: 1px solid rgba(125, 255, 179, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .thought-input {
+            background: rgba(10, 10, 26, 0.8);
+            border: 2px solid rgba(125, 255, 179, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            color: #7dffb3;
+            font-family: inherit;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            height: 100px;
+        }
+        
+        /* Right Panel - Enhancement Controls */
+        .enhancement-panel {
+            background: rgba(20, 20, 40, 0.6);
+            border: 2px solid rgba(125, 255, 179, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .enhancement-slider {
+            margin: 20px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #8a8aff;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(10, 10, 26, 0.8);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #7dffb3;
+            cursor: pointer;
+        }
+        
+        .enhancement-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #0088ff, #00cc88);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .enhancement-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(125, 255, 179, 0.3);
+        }
+        
+        /* Bottom Panel - Cognitive Functions */
+        .cognitive-panel {
+            grid-column: 1 / -1;
+            background: rgba(20, 20, 40, 0.6);
+            border: 2px solid rgba(125, 255, 179, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        .cognitive-function {
+            background: rgba(30, 30, 60, 0.6);
+            border: 1px solid rgba(125, 255, 179, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .cognitive-function:hover {
+            background: rgba(125, 255, 179, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .function-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #7dffb3;
+        }
+        
+        .function-name {
+            font-size: 12px;
+            color: #8a8aff;
+        }
+        
+        /* Animations */
+        @keyframes neuronPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(125, 255, 179, 0.3); }
+            to { text-shadow: 0 0 30px rgba(125, 255, 179, 0.7); }
+        }
+        
+        @keyframes waveMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(20, 20, 40, 0.6);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(125, 255, 179, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(125, 255, 179, 0.5);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+                font-size: 16px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+            p {
+                line-height: 1.6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Neural Background -->
+    <div class="neural-bg" id="neuralBg"></div>
+    
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-title">NEURALINKER</div>
+        <div class="login-subtitle">Direct Neural Interface v3.14</div>
+        
+        <div class="bio-input">
+            <div class="bio-metric">
+                <span class="bio-label">NEURAL PATTERN</span>
+                <span class="bio-value" id="neuralPattern">SCANNING...</span>
+            </div>
+            <div class="bio-metric">
+                <span class="bio-label">SYNAPSE COHERENCE</span>
+                <span class="bio-value" id="synapseCoherence">92.7%</span>
+            </div>
+            <div class="bio-metric">
+                <span class="bio-label">THETA WAVE STABILITY</span>
+                <span class="bio-value" id="thetaStability">ACTIVE</span>
+            </div>
+        </div>
+        
+        <button class="neural-link-btn" id="neuralLinkBtn">
+            INITIATE NEURAL LINK
+        </button>
+    </div>
+    
+    <!-- Main Interface -->
+    <div class="main-interface" id="mainInterface">
+        <!-- Header -->
+        <div class="header">
+            <div class="system-name">NEURALINKER // DIRECT INTERFACE</div>
+            <div class="status-indicators">
+                <div class="status-item">
+                    <div class="status-value" id="cognitiveLoad">42%</div>
+                    <div class="status-label">COGNITIVE LOAD</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="neuralSync">87%</div>
+                    <div class="status-label">NEURAL SYNC</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="memoryUsage">1.3TB</div>
+                    <div class="status-label">MEMORY USAGE</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left: Neural Activity -->
+            <div class="neural-panel">
+                <div class="brain-visualization">
+                    <div class="brain-hemisphere left-hemisphere"></div>
+                    <div class="brain-hemisphere right-hemisphere"></div>
+                </div>
+                <div class="neural-activity">
+                    <div class="activity-wave"></div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div style="color: #8a8aff; font-size: 12px; margin-bottom: 10px;">ACTIVE REGIONS</div>
+                    <div style="color: #7dffb3; font-size: 14px;">
+                        Prefrontal Cortex • Hippocampus • <br>
+                        Visual Cortex • Motor Cortex
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Center: Thought Interface -->
+            <div class="thought-panel">
+                <div class="thought-stream" id="thoughtStream">
+                    <div style="color: #8a8aff; margin-bottom: 10px;">[NEURAL LINK ESTABLISHED]</div>
+                    <div style="color: #7dffb3; margin-bottom: 5px;">> Initializing cognitive processes...</div>
+                    <div style="color: #7dffb3; margin-bottom: 5px;">> Memory consolidation active</div>
+                    <div style="color: #7dffb3; margin-bottom: 5px;">> Neural pathways optimized</div>
+                    <div style="color: #7dffb3; margin-bottom: 5px;">> Ready for thought input</div>
+                </div>
+                <textarea class="thought-input" id="thoughtInput" placeholder="Enter your thoughts here..."></textarea>
+            </div>
+            
+            <!-- Right: Enhancement Controls -->
+            <div class="enhancement-panel">
+                <div style="color: #7dffb3; font-size: 18px; margin-bottom: 20px;">COGNITIVE ENHANCEMENT</div>
+                
+                <div class="enhancement-slider">
+                    <div class="slider-label">
+                        <span>MEMORY RECALL</span>
+                        <span id="memoryValue">75%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="75" class="slider" id="memorySlider">
+                </div>
+                
+                <div class="enhancement-slider">
+                    <div class="slider-label">
+                        <span>FOCUS AMPLIFICATION</span>
+                        <span id="focusValue">60%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="60" class="slider" id="focusSlider">
+                </div>
+                
+                <div class="enhancement-slider">
+                    <div class="slider-label">
+                        <span>CREATIVITY BOOST</span>
+                        <span id="creativityValue">45%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="45" class="slider" id="creativitySlider">
+                </div>
+                
+                <button class="enhancement-btn" id="boostBtn">APPLY ENHANCEMENTS</button>
+                <button class="enhancement-btn" style="background: linear-gradient(45deg, #ff4444, #ff8844);" id="resetBtn">RESET TO BASELINE</button>
+            </div>
+            
+            <!-- Bottom: Cognitive Functions -->
+            <div class="cognitive-panel">
+                <div class="cognitive-function" data-function="memory">
+                    <div class="function-icon">🧠</div>
+                    <div class="function-name">MEMORY CONSOLIDATION</div>
+                </div>
+                <div class="cognitive-function" data-function="focus">
+                    <div class="function-icon">🎯</div>
+                    <div class="function-name">FOCUS TUNNEL</div>
+                </div>
+                <div class="cognitive-function" data-function="dream">
+                    <div class="function-icon">🌌</div>
+                    <div class="function-name">LUCID DREAM STATE</div>
+                </div>
+                <div class="cognitive-function" data-function="learn">
+                    <div class="function-icon">📚</div>
+                    <div class="function-name">ACCELERATED LEARNING</div>
+                </div>
+                <div class="cognitive-function" data-function="meditate">
+                    <div class="function-icon">☯️</div>
+                    <div class="function-name">NEURAL MEDITATION</div>
+                </div>
+                <div class="cognitive-function" data-function="visualize">
+                    <div class="function-icon">🎨</div>
+                    <div class="function-name">VISUALIZATION MODE</div>
+                </div>
+                <div class="cognitive-function" data-function="analyze">
+                    <div class="function-icon">📊</div>
+                    <div class="function-name">PATTERN ANALYSIS</div>
+                </div>
+                <div class="cognitive-function" data-function="create">
+                    <div class="function-icon">⚡</div>
+                    <div class="function-name">CREATIVE BURST</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create neural network background
+        function createNeuralNetwork() {
+            const container = document.getElementById('neuralBg');
+            const neurons = [];
+            const synapses = [];
+            
+            // Create neurons
+            for (let i = 0; i < 30; i++) {
+                const neuron = document.createElement('div');
+                neuron.className = 'neuron';
+                neuron.style.left = `${Math.random() * 100}%`;
+                neuron.style.top = `${Math.random() * 100}%`;
+                neuron.style.animationDelay = `${Math.random() * 3}s`;
+                container.appendChild(neuron);
+                neurons.push(neuron);
+            }
+            
+            // Create synapses (connections)
+            for (let i = 0; i < neurons.length; i++) {
+                for (let j = i + 1; j < neurons.length; j++) {
+                    if (Math.random() > 0.7) { // 30% connection chance
+                        const neuron1 = neurons[i];
+                        const neuron2 = neurons[j];
+                        
+                        const x1 = parseFloat(neuron1.style.left);
+                        const y1 = parseFloat(neuron1.style.top);
+                        const x2 = parseFloat(neuron2.style.left);
+                        const y2 = parseFloat(neuron2.style.top);
+                        
+                        const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                        
+                        if (distance < 40) { // Only connect nearby neurons
+                            const synapse = document.createElement('div');
+                            synapse.className = 'synapse';
+                            
+                            const angle = Math.atan2(y2 - y1, x2 - x1);
+                            const length = distance;
+                            
+                            synapse.style.width = `${length}%`;
+                            synapse.style.left = `${x1}%`;
+                            synapse.style.top = `${y1}%`;
+                            synapse.style.transform = `rotate(${angle}rad)`;
+                            synapse.style.opacity = 0.1 + Math.random() * 0.2;
+                            
+                            container.appendChild(synapse);
+                            synapses.push(synapse);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Login System
+        const loginScreen = document.getElementById('loginScreen');
+        const mainInterface = document.getElementById('mainInterface');
+        const neuralLinkBtn = document.getElementById('neuralLinkBtn');
+        
+        // Simulate biometric scanning
+        function simulateBiometricScan() {
+            const patterns = [
+                "ALPHA-GAMMA-THETA", 
+                "BETA-DELTA-KAPPA", 
+                "THETA-ALPHA-OMEGA",
+                "GAMMA-BETA-ZETA"
+            ];
+            
+            let scanProgress = 0;
+            const interval = setInterval(() => {
+                scanProgress += 20;
+                
+                if (scanProgress <= 100) {
+                    document.getElementById('neuralPattern').textContent = `SCANNING... ${scanProgress}%`;
+                    
+                    if (scanProgress === 100) {
+                        clearInterval(interval);
+                        const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+                        document.getElementById('neuralPattern').textContent = pattern;
+                        document.getElementById('neuralPattern').style.color = "#7dffb3";
+                        
+                        // Randomize other metrics
+                        const coherence = (90 + Math.random() * 10).toFixed(1);
+                        document.getElementById('synapseCoherence').textContent = `${coherence}%`;
+                        
+                        const stability = Math.random() > 0.5 ? "ACTIVE" : "STABLE";
+                        document.getElementById('thetaStability').textContent = stability;
+                        
+                        neuralLinkBtn.style.animation = "glow 1s infinite alternate";
+                    }
+                }
+            }, 200);
+        }
+        
+        // Initialize neural link
+        neuralLinkBtn.addEventListener('click', function() {
+            // Animate biometric scanning
+            neuralLinkBtn.textContent = "ESTABLISHING LINK...";
+            neuralLinkBtn.disabled = true;
+            
+            setTimeout(() => {
+                loginScreen.style.opacity = "0";
+                loginScreen.style.transition = "opacity 1s";
+                
+                setTimeout(() => {
+                    loginScreen.style.display = "none";
+                    mainInterface.style.display = "flex";
+                    initializeNeuralInterface();
+                }, 1000);
+            }, 2000);
+        });
+        
+        // Initialize neural interface
+        function initializeNeuralInterface() {
+            createNeuralNetwork();
+            
+            // Update status indicators periodically
+            setInterval(() => {
+                const load = Math.floor(30 + Math.random() * 40);
+                const sync = Math.floor(80 + Math.random() * 15);
+                const memory = (1.2 + Math.random() * 0.5).toFixed(1);
+                
+                document.getElementById('cognitiveLoad').textContent = `${load}%`;
+                document.getElementById('neuralSync').textContent = `${sync}%`;
+                document.getElementById('memoryUsage').textContent = `${memory}TB`;
+            }, 3000);
+            
+            // Thought input handling
+            const thoughtInput = document.getElementById('thoughtInput');
+            const thoughtStream = document.getElementById('thoughtStream');
+            
+            thoughtInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const thought = this.value.trim();
+                    
+                    if (thought) {
+                        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const thoughtEntry = document.createElement('div');
+                        thoughtEntry.style.color = "#7dffb3";
+                        thoughtEntry.style.marginBottom = "5px";
+                        thoughtEntry.innerHTML = `[${time}] > ${thought}`;
+                        
+                        thoughtStream.appendChild(thoughtEntry);
+                        this.value = "";
+                        
+                        // Auto-scroll
+                        thoughtStream.scrollTop = thoughtStream.scrollHeight;
+                        
+                        // Simulate AI response
+                        setTimeout(() => {
+                            const responses = [
+                                "Analyzing thought patterns...",
+                                "Memory association detected",
+                                "Emotional valence: neutral",
+                                "Processing cognitive load",
+                                "Neural pathway strengthened",
+                                "Thought archived in hippocampus"
+                            ];
+                            
+                            const response = responses[Math.floor(Math.random() * responses.length)];
+                            const responseEntry = document.createElement('div');
+                            responseEntry.style.color = "#8a8aff";
+                            responseEntry.style.marginBottom = "5px";
+                            responseEntry.style.fontStyle = "italic";
+                            responseEntry.innerHTML = `[SYSTEM] ${response}`;
+                            
+                            thoughtStream.appendChild(responseEntry);
+                            thoughtStream.scrollTop = thoughtStream.scrollHeight;
+                        }, 1000);
+                    }
+                }
+            });
+            
+            // Enhancement sliders
+            const sliders = ['memory', 'focus', 'creativity'];
+            sliders.forEach(sliderId => {
+                const slider = document.getElementById(`${sliderId}Slider`);
+                const valueDisplay = document.getElementById(`${sliderId}Value`);
+                
+                slider.addEventListener('input', function() {
+                    valueDisplay.textContent = `${this.value}%`;
+                });
+            });
+            
+            // Boost button
+            document.getElementById('boostBtn').addEventListener('click', function() {
+                const memory = document.getElementById('memorySlider').value;
+                const focus = document.getElementById('focusSlider').value;
+                const creativity = document.getElementById('creativitySlider').value;
+                
+                // Add thought about enhancement
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const boostEntry = document.createElement('div');
+                boostEntry.style.color = "#00ffaa";
+                boostEntry.style.marginBottom = "5px";
+                boostEntry.innerHTML = `[${time}] > Cognitive enhancement applied: Memory ${memory}%, Focus ${focus}%, Creativity ${creativity}%`;
+                thoughtStream.appendChild(boostEntry);
+                
+                // Animate status indicators
+                document.getElementById('cognitiveLoad').textContent = `${parseInt(memory) + parseInt(focus)}%`;
+                document.getElementById('neuralSync').textContent = "95%";
+                
+                // Reset after 5 seconds
+                setTimeout(() => {
+                    document.getElementById('cognitiveLoad').textContent = "42%";
+                    document.getElementById('neuralSync').textContent = "87%";
+                }, 5000);
+            });
+            
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                document.getElementById('memorySlider').value = 75;
+                document.getElementById('focusSlider').value = 60;
+                document.getElementById('creativitySlider').value = 45;
+                
+                document.getElementById('memoryValue').textContent = "75%";
+                document.getElementById('focusValue').textContent = "60%";
+                document.getElementById('creativityValue').textContent = "45%";
+                
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const resetEntry = document.createElement('div');
+                resetEntry.style.color = "#ff8844";
+                resetEntry.style.marginBottom = "5px";
+                resetEntry.innerHTML = `[${time}] > Neural parameters reset to baseline`;
+                thoughtStream.appendChild(resetEntry);
+            });
+            
+            // Cognitive function buttons
+            document.querySelectorAll('.cognitive-function').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const functionName = this.querySelector('.function-name').textContent;
+                    const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    const entry = document.createElement('div');
+                    entry.style.color = "#7dffb3";
+                    entry.style.marginBottom = "5px";
+                    entry.style.fontWeight = "bold";
+                    entry.innerHTML = `[${time}] > ACTIVATING: ${functionName}`;
+                    
+                    thoughtStream.appendChild(entry);
+                    thoughtStream.scrollTop = thoughtStream.scrollHeight;
+                    
+                    // Visual feedback
+                    this.style.background = "rgba(125, 255, 179, 0.3)";
+                    this.style.boxShadow = "0 0 20px rgba(125, 255, 179, 0.5)";
+                    
+                    setTimeout(() => {
+                        this.style.background = "";
+                        this.style.boxShadow = "";
+                    }, 1000);
+                });
+            });
+        }
+        
+        // Initialize on load
+        window.onload = function() {
+            setTimeout(simulateBiometricScan, 1000);
+        };
+    </script>
+</body>
+</html>

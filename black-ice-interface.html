@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAK_U_BAK_U // DEVICE PENETRATION</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        :root {
+            --black: #000000;
+            --green: #00FF41;
+            --red: #FF003C;
+            --dark-green: #003300;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--green);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Minimal scanlines */
+        .scanlines {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 255, 65, 0.02) 50%
+            );
+            background-size: 100% 3px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Main interface */
+        .interface {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 60px 1fr 200px;
+            gap: 15px;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            border-bottom: 1px solid var(--green);
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--green);
+        }
+
+        .status {
+            color: var(--red);
+            font-size: 0.9rem;
+        }
+
+        /* Device panel */
+        .device-panel {
+            background: rgba(0, 20, 0, 0.3);
+            border: 1px solid var(--green);
+            padding: 15px;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: var(--green);
+            border-bottom: 1px solid var(--green);
+            padding-bottom: 5px;
+        }
+
+        /* Device list */
+        .device-list {
+            list-style: none;
+        }
+
+        .device-item {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            font-size: 0.85rem;
+            position: relative;
+            cursor: default;
+        }
+
+        .device-item.active {
+            border-color: var(--red);
+            background: rgba(255, 0, 60, 0.1);
+        }
+
+        .device-ip {
+            color: var(--red);
+            font-weight: bold;
+        }
+
+        /* Exploit feed */
+        .exploit-feed {
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .exploit-line {
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+            opacity: 0;
+            animation: appear 0.1s forwards;
+            font-family: 'Courier New', monospace;
+        }
+
+        @keyframes appear {
+            to { opacity: 1; }
+        }
+
+        /* Progress bars */
+        .progress-container {
+            margin: 10px 0;
+        }
+
+        .progress-label {
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 255, 65, 0.1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--green);
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        /* Terminal */
+        .terminal {
+            background: rgba(0, 10, 0, 0.5);
+            border: 1px solid var(--green);
+            padding: 10px;
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .terminal-line {
+            margin-bottom: 2px;
+            opacity: 0;
+            animation: appear 0.1s forwards;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1em;
+            background: var(--green);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Simple alerts */
+        .alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--red);
+            padding: 20px;
+            color: var(--red);
+            font-size: 1.2rem;
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+        }
+
+        /* Network visualization */
+        .network-viz {
+            position: relative;
+            height: 200px;
+            background: rgba(0, 20, 0, 0.2);
+            border: 1px solid var(--green);
+            margin-top: 10px;
+        }
+
+        .node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--green);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .connection {
+            position: absolute;
+            height: 1px;
+            background: var(--green);
+            transform-origin: 0 0;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+                font-size: 16px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+            p {
+                line-height: 1.6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Simple scanlines -->
+    <div class="scanlines"></div>
+
+    <!-- Alert overlay -->
+    <div class="alert" id="alert"></div>
+
+    <!-- Main interface -->
+    <div class="interface">
+        <!-- Header -->
+        <div class="header">
+            <div class="title">GAK_U_BAK_U</div>
+            <div class="status" id="status">INITIALIZING...</div>
+            <div id="time">00:00:00</div>
+        </div>
+
+        <!-- Left panel - Devices -->
+        <div class="device-panel">
+            <div class="panel-title">DEVICES</div>
+            <ul class="device-list" id="deviceList">
+                <!-- Devices will be added here -->
+            </ul>
+            <div class="progress-container">
+                <div class="progress-label">SCAN PROGRESS</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="scanProgress"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center - Exploit feed -->
+        <div class="device-panel">
+            <div class="panel-title">EXPLOIT FEED</div>
+            <div class="exploit-feed" id="exploitFeed">
+                <!-- Exploit messages will appear here -->
+            </div>
+        </div>
+
+        <!-- Right panel - Terminal -->
+        <div class="device-panel">
+            <div class="panel-title">SYSTEM TERMINAL</div>
+            <div class="terminal" id="terminal">
+                <!-- Terminal output will appear here -->
+            </div>
+        </div>
+
+        <!-- Bottom - Network visualization -->
+        <div class="device-panel" style="grid-column: 1 / -1; grid-row: 3;">
+            <div class="panel-title">NETWORK</div>
+            <div class="network-viz" id="networkViz">
+                <!-- Network visualization -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple Device Exploitation Simulator
+        class DeviceExploiter {
+            constructor() {
+                this.devices = [];
+                this.activeDevice = null;
+                this.exploitLog = [];
+                this.terminalLog = [];
+                this.networkNodes = [];
+                this.connections = [];
+                
+                this.init();
+            }
+
+            init() {
+                // Start time display
+                this.updateTime();
+                setInterval(() => this.updateTime(), 1000);
+
+                // Initialize devices
+                this.createDevices();
+                
+                // Start scanning
+                this.startScanning();
+                
+                // Start exploit simulation
+                this.startExploits();
+                
+                // Start terminal output
+                this.startTerminal();
+                
+                // Create network visualization
+                this.createNetwork();
+                
+                // Update status
+                document.getElementById('status').textContent = 'SCANNING';
+            }
+
+            updateTime() {
+                const now = new Date();
+                const time = now.toLocaleTimeString('en-US', { hour12: false });
+                document.getElementById('time').textContent = time;
+            }
+
+            createDevices() {
+                const deviceList = document.getElementById('deviceList');
+                const deviceTypes = [
+                    { type: 'ROUTER', os: 'OpenWRT', vuln: 'HIGH' },
+                    { type: 'CAMERA', os: 'Hikvision', vuln: 'CRITICAL' },
+                    { type: 'PHONE', os: 'Android 11', vuln: 'MEDIUM' },
+                    { type: 'TV', os: 'webOS 5.0', vuln: 'HIGH' },
+                    { type: 'PRINTER', os: 'HP Firmware', vuln: 'CRITICAL' },
+                    { type: 'IOT', os: 'Custom RTOS', vuln: 'HIGH' }
+                ];
+
+                deviceTypes.forEach((device, i) => {
+                    const ip = `192.168.1.${100 + i}`;
+                    const li = document.createElement('li');
+                    li.className = 'device-item';
+                    li.innerHTML = `
+                        <div><span class="device-ip">${ip}</span></div>
+                        <div>${device.type} | ${device.os}</div>
+                        <div>VULN: <span style="color: var(--red)">${device.vuln}</span></div>
+                    `;
+                    
+                    // Make first device active
+                    if (i === 0) {
+                        li.classList.add('active');
+                        this.activeDevice = { ip, ...device };
+                    }
+                    
+                    deviceList.appendChild(li);
+                    this.devices.push({ ip, ...device, element: li });
+                });
+            }
+
+            startScanning() {
+                let progress = 0;
+                const progressBar = document.getElementById('scanProgress');
+                
+                const scan = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(scan);
+                        document.getElementById('status').textContent = 'EXPLOITING';
+                        this.showAlert('SCAN COMPLETE - 6 DEVICES FOUND');
+                    }
+                    
+                    progressBar.style.width = `${progress}%`;
+                }, 200);
+            }
+
+            startExploits() {
+                const feed = document.getElementById('exploitFeed');
+                const exploits = [
+                    'Port 22: SSH - Brute forcing credentials...',
+                    'Port 80: HTTP - Checking for SQL injection...',
+                    'Port 443: HTTPS - Testing SSL vulnerabilities...',
+                    'Port 8080: Web interface - Default credentials...',
+                    'Port 9100: Printer - Buffer overflow attempt...',
+                    'Port 554: RTSP - Camera stream access...',
+                    'UPnP: Discovery service enabled...',
+                    'Telnet: Backdoor access found...'
+                ];
+
+                let i = 0;
+                const addExploit = () => {
+                    if (i < exploits.length) {
+                        const line = document.createElement('div');
+                        line.className = 'exploit-line';
+                        line.textContent = exploits[i];
+                        line.style.animationDelay = `${i * 0.1}s`;
+                        
+                        // Random success/failure
+                        if (Math.random() > 0.3) {
+                            line.innerHTML += ' <span style="color: var(--green)">[SUCCESS]</span>';
+                        } else {
+                            line.innerHTML += ' <span style="color: var(--red)">[FAILED]</span>';
+                        }
+                        
+                        feed.appendChild(line);
+                        feed.scrollTop = feed.scrollHeight;
+                        
+                        i++;
+                        setTimeout(addExploit, 800 + Math.random() * 1200);
+                    } else {
+                        // Switch to next device
+                        this.switchDevice();
+                        i = 0;
+                        setTimeout(addExploit, 2000);
+                    }
+                };
+                
+                setTimeout(addExploit, 1000);
+            }
+
+            switchDevice() {
+                if (this.devices.length > 0) {
+                    // Remove active class from current
+                    this.devices.forEach(d => d.element.classList.remove('active'));
+                    
+                    // Pick random device
+                    const randomIndex = Math.floor(Math.random() * this.devices.length);
+                    const device = this.devices[randomIndex];
+                    device.element.classList.add('active');
+                    this.activeDevice = device;
+                    
+                    // Add terminal message
+                    this.addTerminal(`Switching to device: ${device.ip} (${device.type})`);
+                    
+                    // Show alert
+                    this.showAlert(`TARGET: ${device.ip}`);
+                }
+            }
+
+            startTerminal() {
+                const terminal = document.getElementById('terminal');
+                
+                const initialMessages = [
+                    'Initializing GAK_U_BAK_U...',
+                    'Loading exploit modules...',
+                    'Scanning local network...',
+                    'ARP spoofing enabled...',
+                    'MAC address randomization active...',
+                    'Starting port scanner...'
+                ];
+                
+                // Add initial messages
+                initialMessages.forEach((msg, i) => {
+                    setTimeout(() => {
+                        this.addTerminal(msg);
+                    }, i * 500);
+                });
+                
+                // Add cursor
+                const cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                terminal.appendChild(cursor);
+                
+                // Keep adding messages
+                setInterval(() => {
+                    const messages = [
+                        'Pinging 192.168.1.1...',
+                        'Checking device fingerprints...',
+                        'Analyzing network traffic...',
+                        'Testing common vulnerabilities...',
+                        'Attempting privilege escalation...',
+                        'Establishing persistent access...',
+                        'Covering tracks...',
+                        'Exfiltrating data...'
+                    ];
+                    
+                    if (Math.random() > 0.7) {
+                        this.addTerminal(messages[Math.floor(Math.random() * messages.length)]);
+                    }
+                }, 3000);
+            }
+
+            addTerminal(message) {
+                const terminal = document.getElementById('terminal');
+                const line = document.createElement('div');
+                line.className = 'terminal-line';
+                line.textContent = `> ${message}`;
+                terminal.appendChild(line);
+                
+                // Scroll to bottom
+                terminal.scrollTop = terminal.scrollHeight;
+                
+                // Remove old lines if too many
+                const lines = terminal.querySelectorAll('.terminal-line');
+                if (lines.length > 20) {
+                    lines[0].remove();
+                }
+            }
+
+            createNetwork() {
+                const container = document.getElementById('networkViz');
+                
+                // Create nodes
+                for (let i = 0; i < 8; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node';
+                    
+                    const x = 20 + Math.random() * (container.offsetWidth - 40);
+                    const y = 20 + Math.random() * (container.offsetHeight - 40);
+                    
+                    node.style.left = `${x}px`;
+                    node.style.top = `${y}px`;
+                    
+                    // Make one node red (target)
+                    if (i === 0) {
+                        node.style.background = 'var(--red)';
+                        node.style.boxShadow = '0 0 10px var(--red)';
+                    }
+                    
+                    container.appendChild(node);
+                    this.networkNodes.push({ element: node, x, y });
+                }
+                
+                // Create connections
+                this.updateConnections();
+                setInterval(() => this.updateConnections(), 2000);
+            }
+
+            updateConnections() {
+                // Remove old connections
+                this.connections.forEach(conn => conn.remove());
+                this.connections = [];
+                
+                const container = document.getElementById('networkViz');
+                
+                // Create new connections
+                for (let i = 0; i < this.networkNodes.length; i++) {
+                    for (let j = i + 1; j < this.networkNodes.length; j++) {
+                        if (Math.random() > 0.6) {
+                            const node1 = this.networkNodes[i];
+                            const node2 = this.networkNodes[j];
+                            
+                            const dx = node2.x - node1.x;
+                            const dy = node2.y - node1.y;
+                            const length = Math.sqrt(dx * dx + dy * dy);
+                            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                            
+                            const conn = document.createElement('div');
+                            conn.className = 'connection';
+                            conn.style.width = `${length}px`;
+                            conn.style.left = `${node1.x}px`;
+                            conn.style.top = `${node1.y}px`;
+                            conn.style.transform = `rotate(${angle}deg)`;
+                            
+                            // Fade out old connections
+                            setTimeout(() => {
+                                conn.style.opacity = '0.3';
+                            }, 1500);
+                            
+                            container.appendChild(conn);
+                            this.connections.push(conn);
+                        }
+                    }
+                }
+            }
+
+            showAlert(message) {
+                const alert = document.getElementById('alert');
+                alert.textContent = message;
+                alert.style.opacity = '1';
+                
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                }, 1500);
+            }
+        }
+
+        // Start simulation
+        document.addEventListener('DOMContentLoaded', () => {
+            new DeviceExploiter();
+            
+            // Simple console message
+            console.log('GAK_U_BAK_U Device Exploitation Visualizer');
+            console.log('Pure simulation - No real exploitation');
+        });
+    </script>
+</body>
+</html>

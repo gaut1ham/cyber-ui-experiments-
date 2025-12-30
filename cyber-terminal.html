@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAKUBAKU "SCYTHE"</title>
+    <style>
+        /* BASE */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Consolas', 'Monaco', monospace;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* MATRIX BACKGROUND */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            z-index: -2;
+        }
+        
+        .matrix-char {
+            position: absolute;
+            color: #003300;
+            font-size: 14px;
+            font-family: 'Monaco', monospace;
+            animation: matrixFall linear infinite;
+            text-shadow: 0 0 8px #00ff41;
+        }
+        
+        @keyframes matrixFall {
+            to { transform: translateY(100vh); }
+        }
+        
+        /* LOGIN SCREEN */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .login-container {
+            width: 400px;
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid #003300;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: #00ff41;
+            animation: scanLine 3s linear infinite;
+        }
+        
+        @keyframes scanLine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .login-title {
+            font-size: 24px;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            color: #00ff41;
+        }
+        
+        .login-subtitle {
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 2px;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .input-label {
+            font-size: 11px;
+            color: #666;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .input-field {
+            background: #111;
+            border: 1px solid #003300;
+            padding: 12px;
+            color: #00ff41;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .input-field:focus {
+            border-color: #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+        }
+        
+        .login-btn {
+            background: #111;
+            border: 1px solid #003300;
+            padding: 12px;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 14px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            background: #003300;
+            border-color: #00ff00;
+        }
+        
+        .login-error {
+            color: #ff0033;
+            font-size: 11px;
+            text-align: center;
+            margin-top: 10px;
+            height: 16px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .login-error.visible {
+            opacity: 1;
+        }
+        
+        /* ACCESS GRANTED SCREEN */
+        .access-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        
+        .access-text {
+            text-align: center;
+            font-size: 48px;
+            color: #00ff00;
+            margin-bottom: 20px;
+            animation: glitch 3s infinite;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+        
+        .access-subtext {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+            animation: fadeIn 2s;
+        }
+        
+        .access-loading {
+            width: 200px;
+            height: 2px;
+            background: #003300;
+            overflow: hidden;
+            margin-top: 40px;
+        }
+        
+        .access-progress {
+            height: 100%;
+            background: #00ff00;
+            width: 0%;
+            animation: loadingBar 3s linear forwards;
+        }
+        
+        @keyframes loadingBar {
+            to { width: 100%; }
+        }
+        
+        /* MAIN INTERFACE */
+        .main-interface {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+        
+        /* NAVIGATION */
+        .nav {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 1px solid #003300;
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 18px;
+            letter-spacing: 3px;
+            color: #00ff00;
+        }
+        
+        .title::before {
+            content: ">";
+            margin-right: 10px;
+            color: #ff0033;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .tab {
+            padding: 8px 20px;
+            background: #111;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #666;
+            font-family: inherit;
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: #00ff00;
+        }
+        
+        .tab.active {
+            color: #00ff00;
+            border-bottom-color: #ff0033;
+            background: #1a1a1a;
+        }
+        
+        .status {
+            font-size: 11px;
+            color: #666;
+            letter-spacing: 1px;
+        }
+        
+        /* MAIN CONTAINER */
+        .main {
+            flex: 1;
+            display: none;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .main.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* PAGE 1: HARVEST */
+        .harvest-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            height: calc(100vh - 90px);
+        }
+        
+        .network-view {
+            background: #111;
+            border: 1px solid #003300;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .network-node {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            transition: all 0.3s;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .node-id {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .node-status {
+            font-size: 8px;
+            margin-top: 2px;
+        }
+        
+        .node-connected {
+            border: 1px solid #003300;
+            background: rgba(0, 50, 0, 0.2);
+        }
+        
+        .node-harvesting {
+            border: 1px solid #ff6600;
+            background: rgba(255, 102, 0, 0.1);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .node-harvested {
+            border: 1px solid #ff0033;
+            background: rgba(255, 0, 51, 0.1);
+        }
+        
+        .connection {
+            position: absolute;
+            height: 1px;
+            background: #003300;
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+        
+        .harvest-controls {
+            background: #111;
+            border: 1px solid #003300;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #003300;
+            color: #00ff00;
+            font-family: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-btn:hover {
+            border-color: #00ff00;
+            background: #003300;
+        }
+        
+        .control-btn.danger {
+            border-color: #660000;
+            color: #ff0033;
+        }
+        
+        .control-btn.danger:hover {
+            background: #330000;
+        }
+        
+        .progress {
+            height: 2px;
+            background: #1a1a1a;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #ff0033;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        /* PAGE 2: HARVEST LOG */
+        .log-container {
+            height: calc(100vh - 90px);
+            background: #111;
+            border: 1px solid #003300;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 12px;
+        }
+        
+        .log-time {
+            color: #666;
+            font-size: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .log-content {
+            color: #00ff00;
+            line-height: 1.4;
+        }
+        
+        .log-success { color: #00ff00; }
+        .log-warning { color: #ff6600; }
+        .log-error { color: #ff0033; }
+        .log-system { color: #666; }
+        .log-data { color: #00aaff; }
+        
+        /* PAGE 3: HARVEST DATA */
+        .data-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            height: calc(100vh - 90px);
+        }
+        
+        .device-list {
+            background: #111;
+            border: 1px solid #003300;
+            overflow-y: auto;
+        }
+        
+        .device-item {
+            padding: 15px;
+            border-bottom: 1px solid #1a1a1a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .device-item:hover {
+            background: #1a1a1a;
+        }
+        
+        .device-item.active {
+            background: #003300;
+            border-left: 3px solid #ff0033;
+        }
+        
+        .device-name {
+            color: #00ff00;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .device-info {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .file-explorer {
+            background: #111;
+            border: 1px solid #003300;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .file-header {
+            color: #ff0033;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #003300;
+        }
+        
+        .file-item {
+            padding: 10px;
+            border: 1px solid #1a1a1a;
+            margin-bottom: 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .file-item:hover {
+            border-color: #003300;
+            background: rgba(0, 51, 0, 0.1);
+        }
+        
+        .file-icon {
+            color: #ff6600;
+            width: 20px;
+        }
+        
+        .file-name {
+            color: #00ff00;
+            flex: 1;
+        }
+        
+        .file-size {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        /* PAGE 4: SYSTEM */
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            height: calc(100vh - 90px);
+        }
+        
+        .stat-box {
+            background: #111;
+            border: 1px solid #003300;
+            padding: 20px;
+        }
+        
+        .stat-title {
+            color: #666;
+            font-size: 11px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            color: #00ff00;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-detail {
+            color: #666;
+            font-size: 11px;
+        }
+        
+        .system-commands {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .cmd-input {
+            background: #000;
+            border: 1px solid #003300;
+            color: #00ff00;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+        }
+        
+        /* ANIMATIONS */
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        /* UTILITY */
+        .hidden { display: none; }
+        
+        .scan-animation {
+            position: absolute;
+            top: 0;
+            left: -100px;
+            width: 100px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+            animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { left: -100px; }
+            100% { left: 100%; }
+        }
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+                font-size: 16px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+            p {
+                line-height: 1.6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Background -->
+    <div class="matrix-bg" id="matrixBg"></div>
+    
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-title">GAKUBAKU "SCYTHE"</div>
+                <div class="login-subtitle">SECURE ACCESS TERMINAL v2.3.1</div>
+            </div>
+            
+            <div class="login-form" id="loginForm">
+                <div class="input-group">
+                    <div class="input-label">USERNAME</div>
+                    <input type="text" class="input-field" id="username" value="root" readonly>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">PASSWORD</div>
+                    <input type="password" class="input-field" id="password" placeholder="Enter access code" autofocus>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">
+                    ACCESS SYSTEM
+                </button>
+                
+                <div class="login-error" id="loginError">
+                    ACCESS DENIED - INVALID CREDENTIALS
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Access Granted Screen -->
+    <div class="access-screen" id="accessScreen">
+        <div class="access-text">ACCESS GRANTED</div>
+        <div class="access-subtext">Initializing GAKUBAKU "SCYTHE" protocol...</div>
+        <div class="access-loading">
+            <div class="access-progress"></div>
+        </div>
+    </div>
+    
+    <!-- Main Interface -->
+    <div class="main-interface" id="mainInterface">
+        <!-- Navigation -->
+        <div class="nav">
+            <div class="title">GAKUBAKU "SCYTHE"</div>
+            
+            <div class="nav-tabs">
+                <button class="tab active" data-page="harvest">HARVEST</button>
+                <button class="tab" data-page="log">HARVEST LOG</button>
+                <button class="tab" data-page="data">HARVEST DATA</button>
+                <button class="tab" data-page="system">SYSTEM</button>
+            </div>
+            
+            <div class="status">NETWORK: 192.168.1.0/24 | USER: ROOT | ACTIVE</div>
+        </div>
+        
+        <!-- Page 1: Harvest -->
+        <div class="main active" id="harvest-page">
+            <div class="harvest-grid">
+                <div class="network-view" id="network-view">
+                    <div class="scan-animation"></div>
+                </div>
+                
+                <div class="harvest-controls">
+                    <button class="control-btn" id="btn-enumerate">
+                        <div style="width: 10px; height: 10px; background: #00ff00; margin-right: 10px;"></div>
+                        ENUMERATE NETWORK
+                    </button>
+                    
+                    <button class="control-btn" id="btn-harvest-all">
+                        <div style="width: 10px; height: 10px; background: #ff0033; margin-right: 10px;"></div>
+                        HARVEST ALL NODES
+                    </button>
+                    
+                    <button class="control-btn" id="btn-stealth">
+                        <div style="width: 10px; height: 10px; background: #ff6600; margin-right: 10px;"></div>
+                        STEALTH PROTOCOL
+                    </button>
+                    
+                    <div style="margin: 20px 0; border-top: 1px solid #003300;"></div>
+                    
+                    <div style="color: #666; font-size: 11px; margin-bottom: 10px;">SELECTED NODE</div>
+                    <div id="selected-node-info" style="color: #00ff00; font-size: 12px; margin-bottom: 20px;">
+                        NO NODE SELECTED
+                    </div>
+                    
+                    <button class="control-btn" id="btn-harvest-node" disabled>
+                        <div style="width: 10px; height: 10px; background: #ff0033; margin-right: 10px;"></div>
+                        HARVEST NODE
+                    </button>
+                    
+                    <button class="control-btn" id="btn-exfiltrate" disabled>
+                        <div style="width: 10px; height: 10px; background: #0066ff; margin-right: 10px;"></div>
+                        EXFILTRATE DATA
+                    </button>
+                    
+                    <div class="progress">
+                        <div class="progress-bar" id="harvest-progress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page 2: Harvest Log -->
+        <div class="main" id="log-page">
+            <div class="log-container" id="log-container"></div>
+        </div>
+        
+        <!-- Page 3: Harvest Data -->
+        <div class="main" id="data-page">
+            <div class="data-container">
+                <div class="device-list" id="device-list"></div>
+                <div class="file-explorer" id="file-explorer">
+                    <div class="file-header">SELECT A DEVICE TO VIEW HARVESTED DATA</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page 4: System -->
+        <div class="main" id="system-page">
+            <div class="system-grid">
+                <div class="stat-box">
+                    <div class="stat-title">NETWORK HARVEST</div>
+                    <div class="stat-value" id="stat-harvested">0/10</div>
+                    <div class="stat-detail">NODES HARVESTED</div>
+                    <div class="progress" style="margin-top: 20px;">
+                        <div class="progress-bar" id="stat-progress"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-box">
+                    <div class="stat-title">DATA EXFILTRATED</div>
+                    <div class="stat-value" id="stat-data">0 MB</div>
+                    <div class="stat-detail">CREDENTIALS | FILES | KEYS</div>
+                </div>
+                
+                <div class="stat-box">
+                    <div class="stat-title">OPERATION TIME</div>
+                    <div class="stat-value" id="stat-time">00:00</div>
+                    <div class="stat-detail">STEALTH MODE: <span id="stat-stealth">INACTIVE</span></div>
+                </div>
+                
+                <div class="stat-box">
+                    <div class="stat-title">NETWORK STATE</div>
+                    <div class="stat-value" id="stat-state">IDLE</div>
+                    <div class="stat-detail">192.168.1.0/24 | 10 NODES</div>
+                </div>
+                
+                <div class="stat-box" style="grid-column: span 2;">
+                    <div class="stat-title">SYSTEM COMMANDS</div>
+                    <div class="system-commands">
+                        <button class="control-btn" id="btn-wipe">WIPE LOGS</button>
+                        <button class="control-btn" id="btn-rotate">ROTATE IPS</button>
+                        <button class="control-btn danger" id="btn-evade">EVADE DETECTION</button>
+                        <input type="text" class="cmd-input" id="sys-cmd-input" placeholder="Enter system command...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Background
+        function createMatrixBackground() {
+            const container = document.getElementById('matrixBg');
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            
+            for (let i = 0; i < 50; i++) {
+                const char = document.createElement('div');
+                char.className = 'matrix-char';
+                char.textContent = chars[Math.floor(Math.random() * chars.length)];
+                char.style.left = Math.random() * 100 + 'vw';
+                char.style.animationDuration = (Math.random() * 5 + 3) + 's';
+                char.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(char);
+            }
+        }
+        
+        // Login System
+        const loginScreen = document.getElementById('loginScreen');
+        const accessScreen = document.getElementById('accessScreen');
+        const mainInterface = document.getElementById('mainInterface');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        
+        const CORRECT_PASSWORD = 'root';
+        
+        function handleLogin() {
+            const password = passwordInput.value.trim();
+            
+            if (password === CORRECT_PASSWORD) {
+                loginError.classList.remove('visible');
+                loginScreen.style.display = 'none';
+                accessScreen.style.display = 'flex';
+                
+                setTimeout(() => {
+                    accessScreen.style.display = 'none';
+                    mainInterface.style.display = 'flex';
+                    initMainInterface();
+                }, 3000);
+                
+            } else {
+                loginError.classList.add('visible');
+                passwordInput.value = '';
+                passwordInput.focus();
+                
+                loginScreen.style.animation = 'none';
+                setTimeout(() => {
+                    loginScreen.style.animation = 'shake 0.5s';
+                }, 10);
+                
+                setTimeout(() => {
+                    loginScreen.style.animation = '';
+                }, 500);
+            }
+        }
+        
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Login event listeners
+        loginBtn.addEventListener('click', handleLogin);
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+        
+        // Main Interface System
+        function initMainInterface() {
+            // Network Data
+            const networkNodes = [
+                { id: 1, name: "ADMIN-PC", ip: "192.168.1.101", mac: "00:1A:2B:3C:4D:5E", type: "windows", status: "connected", harvested: false },
+                { id: 2, name: "SRV-DB01", ip: "192.168.1.102", mac: "00:0C:29:AB:CD:EF", type: "linux", status: "connected", harvested: false },
+                { id: 3, name: "CEO-MBP", ip: "192.168.1.103", mac: "00:1B:44:11:3A:2B", type: "macos", status: "connected", harvested: false },
+                { id: 4, name: "NAS-01", ip: "192.168.1.104", mac: "A0:B1:C2:D3:E4:F5", type: "storage", status: "connected", harvested: false },
+                { id: 5, name: "IOT-CAM", ip: "192.168.1.105", mac: "34:56:78:90:AB:CD", type: "iot", status: "connected", harvested: false },
+                { id: 6, name: "PRINT-01", ip: "192.168.1.106", mac: "00:1E:4F:12:34:56", type: "printer", status: "connected", harvested: false },
+                { id: 7, name: "GUEST-PC", ip: "192.168.1.107", mac: "08:00:27:89:AB:CD", type: "windows", status: "connected", harvested: false },
+                { id: 8, name: "SWITCH-01", ip: "192.168.1.108", mac: "00:11:32:21:4A:BC", type: "network", status: "connected", harvested: false },
+                { id: 9, name: "VM-BACKUP", ip: "192.168.1.109", mac: "FC:DB:B3:1A:2B:3C", type: "linux", status: "connected", harvested: false },
+                { id: 10, name: "RT-MAIN", ip: "192.168.1.1", mac: "B8:27:EB:12:34:56", type: "router", status: "connected", harvested: false }
+            ];
+            
+            // Fake Files Database
+            const fakeFiles = {
+                windows: [
+                    { name: "sam.db", size: "2.4 MB", type: "database", icon: "🔐" },
+                    { name: "system.log", size: "1.1 MB", type: "log", icon: "📄" },
+                    { name: "credentials.enc", size: "512 KB", type: "encrypted", icon: "🔒" }
+                ],
+                linux: [
+                    { name: "/etc/shadow", size: "12 KB", type: "system", icon: "🔐" },
+                    { name: "/var/log/auth.log", size: "2.1 MB", type: "log", icon: "📄" },
+                    { name: "/home/*/.ssh/", size: "8.3 MB", type: "directory", icon: "📁" }
+                ],
+                macos: [
+                    { name: "keychain.db", size: "5.6 MB", type: "database", icon: "🔐" },
+                    { name: "console_logs.archive", size: "8.9 MB", type: "archive", icon: "📦" }
+                ],
+                storage: [
+                    { name: "backup_2024.tar.gz", size: "245 MB", type: "archive", icon: "📦" },
+                    { name: "financial_records.xlsx", size: "34 MB", type: "document", icon: "📊" }
+                ],
+                iot: [
+                    { name: "camera_config.json", size: "8 KB", type: "config", icon: "⚙️" },
+                    { name: "motion_logs.db", size: "45 MB", type: "database", icon: "📊" }
+                ],
+                printer: [
+                    { name: "print_job_history.db", size: "23 MB", type: "database", icon: "📄" },
+                    { name: "scanned_documents/", size: "89 MB", type: "directory", icon: "📁" }
+                ],
+                network: [
+                    { name: "arp_table.db", size: "2 MB", type: "database", icon: "📊" },
+                    { name: "dhcp_leases.log", size: "8 MB", type: "log", icon: "📄" }
+                ],
+                router: [
+                    { name: "firewall_rules.conf", size: "8 KB", type: "config", icon: "⚙️" },
+                    { name: "vpn_keys.tar", size: "3 MB", type: "archive", icon: "📦" }
+                ]
+            };
+            
+            let selectedNodeId = null;
+            let harvestedData = [];
+            let stealthMode = false;
+            let operationStartTime = Date.now();
+            let totalDataSize = 0;
+            
+            // Navigation
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const page = this.dataset.page;
+                    
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.main').forEach(p => p.classList.remove('active'));
+                    document.getElementById(`${page}-page`).classList.add('active');
+                    
+                    if (page === 'data') updateDeviceList();
+                });
+            });
+            
+            // Initialize log
+            addLog('system', 'GAKUBAKU "SCYTHE" v2.3.1 INITIALIZED');
+            addLog('system', 'USER ROOT LOGGED IN');
+            addLog('system', 'TARGET NETWORK: 192.168.1.0/24');
+            
+            // Render network
+            renderNetwork();
+            updateDeviceList();
+            updateStats();
+            startOperationTimer();
+            
+            // Functions
+            function renderNetwork() {
+                const container = document.getElementById('network-view');
+                container.innerHTML = '<div class="scan-animation"></div>';
+                
+                networkNodes.forEach((node, index) => {
+                    const angle = (index / networkNodes.length) * 2 * Math.PI;
+                    const radius = 35;
+                    const x = 50 + radius * Math.cos(angle);
+                    const y = 50 + radius * Math.sin(angle);
+                    
+                    const nodeEl = document.createElement('div');
+                    nodeEl.className = `network-node ${node.harvested ? 'node-harvested' : 'node-connected'}`;
+                    nodeEl.style.left = `${x}%`;
+                    nodeEl.style.top = `${y}%`;
+                    nodeEl.innerHTML = `
+                        <div class="node-id">${node.id}</div>
+                        <div class="node-status">${node.harvested ? 'HARVESTED' : 'CONNECTED'}</div>
+                    `;
+                    
+                    nodeEl.addEventListener('click', () => selectNode(node.id));
+                    container.appendChild(nodeEl);
+                    
+                    const line = document.createElement('div');
+                    line.className = 'connection';
+                    line.style.width = `${radius}%`;
+                    line.style.left = '50%';
+                    line.style.top = '50%';
+                    line.style.transform = `rotate(${angle}rad)`;
+                    container.appendChild(line);
+                });
+            }
+            
+            function selectNode(nodeId) {
+                selectedNodeId = nodeId;
+                const node = networkNodes.find(n => n.id === nodeId);
+                
+                document.getElementById('selected-node-info').innerHTML = `
+                    <div>${node.name}</div>
+                    <div style="color: #666; font-size: 10px;">${node.ip} | ${node.type.toUpperCase()}</div>
+                    <div style="color: #666; font-size: 10px; margin-top: 5px;">${node.harvested ? 'STATUS: HARVESTED' : 'STATUS: CONNECTED'}</div>
+                `;
+                
+                document.getElementById('btn-harvest-node').disabled = node.harvested;
+                document.getElementById('btn-exfiltrate').disabled = !node.harvested;
+            }
+            
+            function addLog(type, message) {
+                const container = document.getElementById('log-container');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                
+                const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+                
+                entry.innerHTML = `
+                    <div class="log-time">[${time}]</div>
+                    <div class="log-content log-${type}">${message}</div>
+                `;
+                
+                container.appendChild(entry);
+                container.scrollTop = container.scrollHeight;
+            }
+            
+            function updateDeviceList() {
+                const container = document.getElementById('device-list');
+                container.innerHTML = '';
+                
+                networkNodes.forEach(node => {
+                    const item = document.createElement('div');
+                    item.className = `device-item ${selectedNodeId === node.id ? 'active' : ''}`;
+                    item.innerHTML = `
+                        <div class="device-name">${node.name}</div>
+                        <div class="device-info">${node.ip} | ${node.type.toUpperCase()}</div>
+                        <div class="device-info">${node.harvested ? 'HARVESTED' : 'CONNECTED'}</div>
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        document.querySelectorAll('.device-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                        showNodeFiles(node.id);
+                    });
+                    
+                    container.appendChild(item);
+                });
+            }
+            
+            function showNodeFiles(nodeId) {
+                const node = networkNodes.find(n => n.id === nodeId);
+                const container = document.getElementById('file-explorer');
+                
+                if (!node.harvested) {
+                    container.innerHTML = `
+                        <div class="file-header">${node.name} (${node.ip})</div>
+                        <div style="color: #666; font-size: 12px; margin-top: 20px;">
+                            NODE NOT HARVESTED<br>
+                            HARVEST TO EXTRACT FILES
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const harvestedNode = harvestedData.find(d => d.nodeId === nodeId);
+                const files = harvestedNode?.files || [];
+                
+                let filesHTML = `
+                    <div class="file-header">${node.name} (${node.ip}) - HARVESTED FILES</div>
+                `;
+                
+                files.forEach(file => {
+                    filesHTML += `
+                        <div class="file-item">
+                            <div class="file-icon">${file.icon}</div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${file.size}</div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = filesHTML;
+            }
+            
+            function updateStats() {
+                const harvested = networkNodes.filter(n => n.harvested).length;
+                
+                document.getElementById('stat-harvested').textContent = `${harvested}/${networkNodes.length}`;
+                document.getElementById('stat-progress').style.width = `${(harvested / networkNodes.length) * 100}%`;
+                document.getElementById('stat-data').textContent = `${Math.round(totalDataSize)} MB`;
+                document.getElementById('stat-state').textContent = harvested === 0 ? 'IDLE' : 'ACTIVE';
+            }
+            
+            function startOperationTimer() {
+                setInterval(() => {
+                    const elapsed = Date.now() - operationStartTime;
+                    const minutes = Math.floor(elapsed / 60000);
+                    const seconds = Math.floor((elapsed % 60000) / 1000);
+                    document.getElementById('stat-time').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            // Button handlers
+            document.getElementById('btn-enumerate').addEventListener('click', function() {
+                addLog('system', 'ENUMERATING NETWORK 192.168.1.0/24');
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 10;
+                    document.getElementById('harvest-progress').style.width = `${progress}%`;
+                    
+                    if (progress === 100) {
+                        clearInterval(interval);
+                        addLog('success', 'NETWORK ENUMERATION COMPLETE');
+                        addLog('data', `FOUND ${networkNodes.length} ACTIVE NODES`);
+                        
+                        setTimeout(() => {
+                            document.getElementById('harvest-progress').style.width = '0%';
+                        }, 1000);
+                    }
+                }, 100);
+            });
+            
+            document.getElementById('btn-harvest-all').addEventListener('click', function() {
+                addLog('warning', 'INITIATING FULL NETWORK HARVEST');
+                
+                networkNodes.forEach((node, index) => {
+                    setTimeout(() => {
+                        if (!node.harvested) {
+                            harvestSingleNode(node.id);
+                        }
+                    }, index * 2000);
+                });
+            });
+            
+            document.getElementById('btn-harvest-node').addEventListener('click', function() {
+                if (!selectedNodeId) return;
+                harvestSingleNode(selectedNodeId);
+            });
+            
+            function harvestSingleNode(nodeId) {
+                const node = networkNodes.find(n => n.id === nodeId);
+                if (node.harvested) return;
+                
+                node.status = 'harvesting';
+                addLog('warning', `HARVESTING NODE ${node.name} (${node.ip})`);
+                
+                renderNetwork();
+                
+                setTimeout(() => {
+                    node.harvested = true;
+                    node.status = 'connected';
+                    
+                    const files = fakeFiles[node.type] || fakeFiles.linux;
+                    harvestedData.push({
+                        nodeId: node.id,
+                        nodeName: node.name,
+                        ip: node.ip,
+                        files: files,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    totalDataSize += files.reduce((sum, file) => {
+                        const size = parseFloat(file.size);
+                        const unit = file.size.includes('GB') ? 1024 : 1;
+                        return sum + (size * unit);
+                    }, 0);
+                    
+                    addLog('success', `NODE ${node.name} HARVESTED`);
+                    addLog('data', `EXTRACTED ${files.length} FILES`);
+                    
+                    renderNetwork();
+                    updateStats();
+                    updateDeviceList();
+                    
+                    if (selectedNodeId === nodeId) {
+                        selectNode(nodeId);
+                        showNodeFiles(nodeId);
+                    }
+                }, 3000);
+            }
+            
+            document.getElementById('btn-stealth').addEventListener('click', function() {
+                stealthMode = !stealthMode;
+                const btn = document.getElementById('btn-stealth');
+                
+                if (stealthMode) {
+                    btn.innerHTML = `
+                        <div style="width: 10px; height: 10px; background: #00ff00; margin-right: 10px;"></div>
+                        STEALTH: ACTIVE
+                    `;
+                    addLog('system', 'STEALTH PROTOCOL ACTIVATED');
+                    document.getElementById('stat-stealth').textContent = 'ACTIVE';
+                } else {
+                    btn.innerHTML = `
+                        <div style="width: 10px; height: 10px; background: #ff6600; margin-right: 10px;"></div>
+                        STEALTH PROTOCOL
+                    `;
+                    addLog('system', 'STEALTH PROTOCOL DEACTIVATED');
+                    document.getElementById('stat-stealth').textContent = 'INACTIVE';
+                }
+            });
+            
+            // System commands
+            document.getElementById('btn-wipe').addEventListener('click', function() {
+                document.getElementById('log-container').innerHTML = '';
+                addLog('system', 'SYSTEM LOGS WIPED');
+            });
+            
+            document.getElementById('btn-rotate').addEventListener('click', function() {
+                addLog('system', 'ROTATING EXTERNAL IP ADDRESSES');
+                setTimeout(() => {
+                    addLog('success', 'IP ROTATION COMPLETE');
+                }, 1500);
+            });
+            
+            document.getElementById('btn-evade').addEventListener('click', function() {
+                addLog('warning', 'ACTIVATING EVASION PROTOCOLS');
+                setTimeout(() => {
+                    addLog('success', 'EVASION MEASURES DEPLOYED');
+                }, 2000);
+            });
+            
+            // System command input
+            document.getElementById('sys-cmd-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const cmd = this.value.trim();
+                    if (cmd) {
+                        addLog('system', `> ${cmd}`);
+                        this.value = '';
+                        
+                        if (cmd === 'help') {
+                            addLog('data', 'Available commands: clear, status, nodes, harvest');
+                        } else if (cmd === 'clear') {
+                            document.getElementById('log-container').innerHTML = '';
+                        } else if (cmd === 'status') {
+                            const harvested = networkNodes.filter(n => n.harvested).length;
+                            addLog('data', `Harvested: ${harvested}/${networkNodes.length} nodes`);
+                        } else {
+                            addLog('error', `Unknown command: ${cmd}`);
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize on load
+        window.onload = function() {
+            createMatrixBackground();
+            passwordInput.focus();
+        };
+    </script>
+</body>
+</html>
